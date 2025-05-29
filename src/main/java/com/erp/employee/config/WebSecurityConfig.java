@@ -85,14 +85,17 @@ public class WebSecurityConfig {
     private static final String[] ADMIN_WHITE_LIST = {
             "/api/v1/admins/**",
             "/api/v1/auth/register/manager",
-            "/api/v1/deductions/**"
+            "/api/v1/deductions/**",
+            "/api/v1/payslips/approve/**"
     };
     private static final String[] ADMIN_MANAGER_WHITE_LIST = {
 
             "/api/v1/auth/register",
+            "/api/v1/payslips/all/**"
 
     };
     private static final String[] MANAGER_WHITE_LIST = {
+            "/api/v1/payslips/generate",
     };
 
 }

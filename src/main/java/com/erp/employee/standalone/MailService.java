@@ -1,6 +1,7 @@
 package com.erp.employee.standalone;
 
 import com.erp.employee.exceptions.AppException;
+import com.erp.employee.models.PaySlip;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -85,5 +86,23 @@ public class MailService {
         } catch (MessagingException e) {
             throw new AppException("Error sending email", e);
         }
+    }
+
+    public void sendSalaryCreditNotification(PaySlip paySlip, String message) {
+        if (paySlip == null || paySlip.getEmployee() == null) {
+            throw new IllegalArgumentException("PaySlip or Employee information is missing");
+        }
+
+        String subject = "Salary Credit Notification";
+
+        String html = "<p>" + message + "</p>"
+                + "<p>This is an automated message. Please do not reply.</p>"
+                + getCommonSignature();
+
+        sendEmail(
+                paySlip.getEmployee().getEmail(),
+                subject,
+                html
+        );
     }
 }

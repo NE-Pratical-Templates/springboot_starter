@@ -9,7 +9,7 @@ import com.erp.employee.enums.ERole;
 import com.erp.employee.exceptions.BadRequestException;
 import com.erp.employee.exceptions.ResourceNotFoundException;
 import com.erp.employee.interfaces.IAuthService;
-import com.erp.employee.interfaces.IEmploymentRepository;
+import com.erp.employee.repositories.IEmploymentRepository;
 import com.erp.employee.models.Employee;
 import com.erp.employee.models.Employment;
 import com.erp.employee.models.Role;

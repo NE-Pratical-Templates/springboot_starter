@@ -65,6 +65,7 @@ public class Employee extends InitiatorAudit {
     private LocalDateTime activationCodeExpiresAt;
 
     @OneToMany(mappedBy = "employee", fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<PaySlip> payslips = new ArrayList<>();
     @OneToOne
     @JoinColumn(name = "employee_id")
