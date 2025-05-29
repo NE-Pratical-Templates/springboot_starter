@@ -16,6 +16,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -109,7 +111,6 @@ public class PaySlipController {
             security = @SecurityRequirement(name = "bearerAuth")
     )
     @GetMapping("/my-payslips")
-    @PreAuthorize("hasRole('EMPLOYEE')")
     public ResponseEntity<ApiResponseDTO> getMyPaySlips(
             @RequestParam(value = "page", defaultValue = Constants.DEFAULT_PAGE_NUMBER) int page,
             @RequestParam(value = "size", defaultValue = Constants.DEFAULT_PAGE_SIZE) int size
@@ -118,6 +119,25 @@ public class PaySlipController {
                 paySlipService.getMyPaySlips(page, size)
 
         ));
+    }
+
+    @Operation(
+            summary = "Get employee's payslips",
+            description = "Retrieves all payslips for the logged-in employee",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+
+    @GetMapping("/my-payslips/download")
+    public ResponseEntity<byte[]> downloadMyPaySlip() {
+        byte[] excelContent = paySlipService.generateMyPaySlipExcel();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        headers.setContentDispositionFormData("attachment", "payslip.xlsx");
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(excelContent);
     }
 
     @Operation(

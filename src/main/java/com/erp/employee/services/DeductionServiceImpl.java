@@ -1,9 +1,15 @@
 package com.erp.employee.services;
 
+import com.erp.employee.dtos.request.CreateDeductionDTO;
+import com.erp.employee.dtos.request.UpdateDeductionDTO;
+import com.erp.employee.dtos.response.DeductionResponseDTO;
+import com.erp.employee.exceptions.ResourceNotFoundException;
 import com.erp.employee.interfaces.IDeductionService;
 import com.erp.employee.models.Deduction;
 import com.erp.employee.repositories.IDeductionRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -34,5 +40,52 @@ public class DeductionServiceImpl implements IDeductionService {
         }
         return "Deduction initialized successfully";
     }
+    @Override
+    public DeductionResponseDTO createDeduction(CreateDeductionDTO dto) {
+        Deduction deduction = new Deduction();
+        deduction.setCode(dto.getCode());
+        deduction.setName(dto.getName());
+        deduction.setPercentage(dto.getPercentage());
+        return convertToDTO(deductionRepo.save(deduction));
+    }
+    @Override
+    public DeductionResponseDTO getDeductionById(Long id) {
+        return convertToDTO(deductionRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Deduction", id.toString(), "id")));
+    }
+
+    @Override
+    public Page<DeductionResponseDTO> getAllDeductions(Pageable pageable) {
+        return deductionRepo.findAll(pageable).map(this::convertToDTO);
+    }
+
+    @Override
+    public DeductionResponseDTO updateDeduction(Long id, UpdateDeductionDTO dto) {
+        Deduction deduction = deductionRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Deduction", id.toString(), "id"));
+
+        deduction.setName(dto.getName());
+        deduction.setCode(dto.getCode());
+        deduction.setPercentage(dto.getPercentage());
+
+        return convertToDTO(deductionRepo.save(deduction));
+    }
+
+    @Override
+    public void deleteDeduction(Long id) {
+        Deduction deduction = deductionRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Deduction", id.toString(), "id"));
+        deductionRepo.delete(deduction);
+    }
+
+    private DeductionResponseDTO convertToDTO(Deduction deduction) {
+        DeductionResponseDTO dto = new DeductionResponseDTO();
+        dto.setId(deduction.getId());
+        dto.setCode(deduction.getCode());
+        dto.setName(deduction.getName());
+        dto.setPercentage(deduction.getPercentage());
+        return dto;
+    }
+
 }
 

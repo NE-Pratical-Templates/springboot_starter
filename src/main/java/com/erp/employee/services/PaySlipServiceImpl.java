@@ -5,6 +5,7 @@ import com.erp.employee.dtos.response.PaySlipResponseDTO;
 import com.erp.employee.enums.EmploymentStatus;
 import com.erp.employee.enums.PaySlipStatus;
 
+import com.erp.employee.exceptions.AppException;
 import com.erp.employee.exceptions.BadRequestException;
 import com.erp.employee.exceptions.ResourceAlreadyExistsException;
 import com.erp.employee.exceptions.ResourceNotFoundException;
@@ -13,9 +14,11 @@ import com.erp.employee.interfaces.IEmployeeService;
 import com.erp.employee.interfaces.IPaySlipService;
 import com.erp.employee.models.*;
 import com.erp.employee.repositories.*;
+import com.erp.employee.standalone.ExcelService;
 import com.erp.employee.standalone.MailService;
 import lombok.RequiredArgsConstructor;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -23,15 +26,19 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PaySlipServiceImpl implements IPaySlipService {
 
     private final IPaySlipRepository paySlipRepository;
@@ -42,6 +49,7 @@ public class PaySlipServiceImpl implements IPaySlipService {
     private final IEmployeeService employeeService;
     private final MailService mailService;
     private final IMessageRepository messageRepo;
+    private  final ExcelService excelService;
 
     @Override
     @Transactional
@@ -148,6 +156,40 @@ public class PaySlipServiceImpl implements IPaySlipService {
             dto.setCreatedAt(payslip.getCreatedAt());
             return dto;
         });
+    }
+    @Override
+    public byte[] generateMyPaySlipExcel() {
+        Employee employee = employeeService.getLoggedInEmployee();
+        PaySlip payslip = paySlipRepository.findFirstByEmployeeOrderByCreatedAtDesc(employee)
+                .orElseThrow(() -> new ResourceNotFoundException("Payslip not found","id","id"));
+
+        List<String> headers = Arrays.asList(
+                "Employee Name", "Base Salary", "House Allowance", "Transport Allowance",
+                "Tax Amount", "Pension Amount", "Medical Insurance", "Other Tax",
+                "Gross Salary", "Net Salary", "Month", "Year", "Status"
+        );
+
+        List<List<String>> data = Collections.singletonList(Arrays.asList(
+                payslip.getEmployee().getFullName(),
+                payslip.getEmployee().getEmployment().getBaseSalary().toString(),
+                payslip.getHouseAmount().toString(),
+                payslip.getTransportAmount().toString(),
+                payslip.getEmployeeTaxAmount().toString(),
+                payslip.getPensionAmount().toString(),
+                payslip.getMedicalInsuranceAmount().toString(),
+                payslip.getOtherTaxAmount().toString(),
+                payslip.getGrossSalary().toString(),
+                payslip.getNetSalary().toString(),
+                payslip.getMonth().toString(),
+                payslip.getYear().toString(),
+                payslip.getStatus().toString()
+        ));
+
+        try {
+            return excelService.generatePaySlipExcel(headers, data);
+        } catch (IOException e) {
+            throw new AppException("failed to generate payslip excel", e);
+        }
     }
 
 

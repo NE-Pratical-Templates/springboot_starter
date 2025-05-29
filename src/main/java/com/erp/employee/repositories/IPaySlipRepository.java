@@ -53,9 +53,14 @@ public interface IPaySlipRepository extends JpaRepository<PaySlip, UUID> {
      */
     boolean existsByEmployee_IdAndMonthAndYear(UUID employeeId, Integer month, Integer year);
 
-//    Page<PaySlip> findByEmployee(Employee employee, Pageable pageable);
 
     Page<PaySlip> findByMonthAndYear(Integer month, Integer year, Pageable pageable);
 
     Page<PaySlip> findByEmployee(Employee employee, Pageable pageable);
+
+    @Query("SELECT p FROM PaySlip p WHERE p.employee = :employee ORDER BY p.createdAt DESC")
+    Page<PaySlip> findAllByEmployee(@Param("employee") Employee employee, Pageable pageable);
+
+    Optional<PaySlip> findFirstByEmployeeOrderByCreatedAtDesc(Employee employee);
+
 }

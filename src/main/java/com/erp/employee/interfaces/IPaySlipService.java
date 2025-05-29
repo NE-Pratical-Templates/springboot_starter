@@ -21,5 +21,8 @@ public interface IPaySlipService {
 
     // For Admin
     PaySlipResponseDTO approvePaySlip(UUID paySlipId);
-//    List<PaySlipResponseDTO> approveBulkPaySlips(Integer month, Integer year);
+
+    //    List<PaySlipResponseDTO> approveBulkPaySlips(Integer month, Integer year);
+    byte[] generateMyPaySlipExcel();
+
 }
