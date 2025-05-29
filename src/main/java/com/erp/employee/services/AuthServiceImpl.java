@@ -1,6 +1,7 @@
 package com.erp.employee.services;
 
 import com.erp.employee.dtos.request.CreateEmployeeDTO;
+import com.erp.employee.dtos.request.CreateEmploymentDTO;
 import com.erp.employee.dtos.request.LoginDTO;
 import com.erp.employee.dtos.response.JwtAuthenticationResponse;
 import com.erp.employee.enums.EAccountStatus;
@@ -8,7 +9,9 @@ import com.erp.employee.enums.ERole;
 import com.erp.employee.exceptions.BadRequestException;
 import com.erp.employee.exceptions.ResourceNotFoundException;
 import com.erp.employee.interfaces.IAuthService;
+import com.erp.employee.interfaces.IEmploymentRepository;
 import com.erp.employee.models.Employee;
+import com.erp.employee.models.Employment;
 import com.erp.employee.models.Role;
 import com.erp.employee.repositories.IEmployeeRepository;
 import com.erp.employee.repositories.IRoleRepository;
@@ -33,6 +36,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class AuthServiceImpl implements IAuthService {
     private final IEmployeeRepository userRepo;
+    private final IEmploymentRepository empRepo;
     private final IRoleRepository roleRepo;
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
@@ -40,32 +44,16 @@ public class AuthServiceImpl implements IAuthService {
     private static final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Override
-    public Employee registerEmployee(CreateEmployeeDTO dto) {
-        Employee user = new Employee();
-        user.setFirstName(dto.getFirstName());
-        user.setLastName(dto.getLastName());
-        user.setEmail(dto.getEmail());
-        user.setMobile(dto.getMobile());
-        user.setNationalId(dto.getNationalId());
-        user.setDob(dto.getDob());
-        user.setStatus(EAccountStatus.ACTIVE);
-
-        try {
-            Role role = roleRepo.findByName(ERole.EMPLOYEE).orElseThrow(
-                    () -> new BadRequestException("STANDARD Role not set"));
-            String encodedPassword = passwordEncoder.encode(dto.getPassword());
-
-            user.setPassword(encodedPassword);
-            user.setRoles(Collections.singleton(role));
-            return userRepo.save(user);
-        } catch (DataIntegrityViolationException ex) {
-            String errorMessage = Utility.getConstraintViolationMessage(ex, user);
-            throw new BadRequestException(errorMessage, ex);
-        }
+    public Employee registerEmployeeManager(CreateEmployeeDTO dto) {
+        return registerEmployeeWithRole(dto, ERole.MANAGER);
     }
 
     @Override
-    public Employee registerEmployeeManager(CreateEmployeeDTO dto) {
+    public Employee registerEmployee(CreateEmployeeDTO dto) {
+        return registerEmployeeWithRole(dto, ERole.EMPLOYEE);
+    }
+
+    private Employee registerEmployeeWithRole(CreateEmployeeDTO dto, ERole roleType) {
         Employee user = new Employee();
         user.setFirstName(dto.getFirstName());
         user.setLastName(dto.getLastName());
@@ -76,18 +64,41 @@ public class AuthServiceImpl implements IAuthService {
         user.setStatus(EAccountStatus.ACTIVE);
 
         try {
-            Role role = roleRepo.findByName(ERole.MANAGER).orElseThrow(
-                    () -> new BadRequestException("MANAGER  Role not set"));
+            Role role = roleRepo.findByName(roleType).orElseThrow(
+                    () -> new BadRequestException(roleType + " Role not set"));
             String encodedPassword = passwordEncoder.encode(dto.getPassword());
 
             user.setPassword(encodedPassword);
             user.setRoles(Collections.singleton(role));
-            return userRepo.save(user);
+
+            // Create employment first
+            Employment employment = createEmployment(dto.getEmployment());
+            empRepo.save(employment);
+
+            user.setEmployment(employment);
+
+            // Save employee which will cascade to employment due to relationship
+            Employee savedUser = userRepo.save(user);
+            employment.setEmployee(savedUser);
+            empRepo.save(employment);
+            return savedUser;
         } catch (DataIntegrityViolationException ex) {
             String errorMessage = Utility.getConstraintViolationMessage(ex, user);
             throw new BadRequestException(errorMessage, ex);
         }
     }
+
+    private Employment createEmployment(CreateEmploymentDTO employmentDTO) {
+        Employment employment = new Employment();
+        employment.setCode(employmentDTO.getCode());
+        employment.setDepartment(employmentDTO.getDepartment());
+        employment.setPosition(employmentDTO.getPosition());
+        employment.setBaseSalary(employmentDTO.getBaseSalary());
+        employment.setStatus(employmentDTO.getStatus());
+        employment.setJoiningDate(employmentDTO.getJoiningDate());
+        return employment;
+    }
+
 
     //    login
     @Override

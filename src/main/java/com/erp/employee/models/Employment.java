@@ -2,6 +2,7 @@ package com.erp.employee.models;
 
 import com.erp.employee.audits.InitiatorAudit;
 import com.erp.employee.enums.EmploymentStatus;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.PastOrPresent;
 import lombok.Data;
@@ -14,7 +15,7 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Entity
-@Table(name = "employees")
+@Table(name = "employments")
 public class Employment extends InitiatorAudit {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -44,7 +45,7 @@ public class Employment extends InitiatorAudit {
 
     @OneToOne
     @JoinColumn(name = "employee_id")
+    @JsonIgnore
     private Employee employee;
-
 
 }

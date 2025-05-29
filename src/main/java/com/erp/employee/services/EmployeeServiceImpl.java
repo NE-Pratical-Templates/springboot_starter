@@ -6,6 +6,8 @@ import com.erp.employee.interfaces.IEmployeeService;
 import com.erp.employee.models.Employee;
 import com.erp.employee.repositories.IEmployeeRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -14,7 +16,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Service
 public class EmployeeServiceImpl implements IEmployeeService {
-    private final IEmployeeRepository EmployeeRepo;
+    private final IEmployeeRepository employeeRepo;
 
     @Override
     public Employee getLoggedInEmployee() {
@@ -33,9 +35,15 @@ public class EmployeeServiceImpl implements IEmployeeService {
             throw new BadRequestException("Invalid authentication principal");
         }
 
-        String Employeename = ((UserDetails) principal).getUsername();
-        return EmployeeRepo.findByEmail(Employeename)
-                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with email: ", Employeename, "email"));
+        String employeeName = ((UserDetails) principal).getUsername();
+
+        return employeeRepo.findByEmail(employeeName)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with email: ", employeeName, "email"));
+    }
+
+    @Override
+    public Page<Employee> getAllEmployees(Pageable pageable) {
+        return employeeRepo.findAll(pageable);
     }
 
 }

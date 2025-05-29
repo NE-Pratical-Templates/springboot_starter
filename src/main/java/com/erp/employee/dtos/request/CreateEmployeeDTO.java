@@ -28,4 +28,6 @@ public class CreateEmployeeDTO {
     @NotNull(message = "Date of birth should not be empty")
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate dob;
+
+    private  CreateEmploymentDTO employment;
 }

@@ -66,7 +66,9 @@ public class Employee extends InitiatorAudit {
 
     @OneToMany(mappedBy = "employee", fetch = FetchType.LAZY)
     private List<PaySlip> payslips = new ArrayList<>();
-
+    @OneToOne
+    @JoinColumn(name = "employee_id")
+    private Employment employment;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
