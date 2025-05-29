@@ -49,7 +49,7 @@ public class PaySlipServiceImpl implements IPaySlipService {
     private final IEmployeeService employeeService;
     private final MailService mailService;
     private final IMessageRepository messageRepo;
-    private  final ExcelService excelService;
+    private final ExcelService excelService;
 
     @Override
     @Transactional
@@ -157,11 +157,12 @@ public class PaySlipServiceImpl implements IPaySlipService {
             return dto;
         });
     }
+
     @Override
     public byte[] generateMyPaySlipExcel() {
         Employee employee = employeeService.getLoggedInEmployee();
         PaySlip payslip = paySlipRepository.findFirstByEmployeeOrderByCreatedAtDesc(employee)
-                .orElseThrow(() -> new ResourceNotFoundException("Payslip not found","id","id"));
+                .orElseThrow(() -> new ResourceNotFoundException("Payslip not found", "id", "id"));
 
         List<String> headers = Arrays.asList(
                 "Employee Name", "Base Salary", "House Allowance", "Transport Allowance",
@@ -203,6 +204,7 @@ public class PaySlipServiceImpl implements IPaySlipService {
 
         if (paySlip.getStatus() == PaySlipStatus.PAID) {
             throw new BadRequestException("PaySlip is already approved");
+//            String msg = "PaySlip with ID " + paySlipId + " is already approved.";
         }
 
 
@@ -215,6 +217,7 @@ public class PaySlipServiceImpl implements IPaySlipService {
         msg.setEmployee(savedPaySlip.getEmployee());
         msg.setMessage(message);
         mailService.sendSalaryCreditNotification(savedPaySlip, message);
+        messageRepo.save(msg);
         return mapToPaySlipResponseDTO(savedPaySlip);
     }
 

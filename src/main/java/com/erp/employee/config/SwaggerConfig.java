@@ -32,7 +32,7 @@ public class SwaggerConfig {
     public OpenAPI openAPIForDev() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("🏦 ERP Application API Docs")
+                        .title(" ERP Application API Docs")
                         .description("This is the Swagger documentation FOR erp Application backend APIs.")
                         .version("1.0.0"))
                 .servers(List.of(new Server().url(serverUrl).description("Development Server")));
@@ -43,7 +43,7 @@ public class SwaggerConfig {
     public OpenAPI openAPIForProd() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("🏦 ERPApplication API Docs")
+                        .title(" ERP Application API Docs")
                         .description("Production API documentation for the ERPApplication.")
                         .version("1.0.0"))
                 .servers(List.of(new Server().url(serverUrl).description("Production Server")));
@@ -54,7 +54,7 @@ public class SwaggerConfig {
     public OpenAPI openAPIForTest() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("🏦 ERPApplication API Docs")
+                        .title(" ERP Application API Docs")
                         .description("Testing API documentation for the ERP Application.")
                         .version("1.0.0"))
                 .servers(List.of(new Server().url(serverUrl).description("Testing Server")));
